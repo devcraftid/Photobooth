@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { LayoutDashboard, Calendar, Settings, Image as ImageIcon, LogOut, Loader2 } from 'lucide-react';
+import { LayoutDashboard, Calendar, Settings, Image as ImageIcon, LogOut, Loader2, Users, FileImage, FolderHeart } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -44,8 +44,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Events', href: '/admin/events', icon: Calendar },
+    { name: 'Event Manager', href: '/admin/events-management', icon: Calendar },
+    { name: 'Live Queue', href: '/admin/events', icon: Users },
     { name: 'Templates', href: '/admin/templates', icon: ImageIcon },
+    { name: 'Photos', href: '/admin/photos', icon: FolderHeart },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
