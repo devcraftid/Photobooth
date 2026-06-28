@@ -38,9 +38,21 @@ export default function EventsManagement() {
     if (!newEventName.trim()) return;
     setIsCreating(true);
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      alert("You must be logged in!");
+      setIsCreating(false);
+      return;
+    }
+
     const { error } = await supabase
       .from('events')
-      .insert({ name: newEventName, status: 'draft' });
+      .insert({ 
+        name: newEventName, 
+        status: 'draft',
+        admin_id: session.user.id,
+        date: new Date().toISOString().split('T')[0] // today's date in YYYY-MM-DD
+      });
 
     if (!error) {
       setNewEventName('');
