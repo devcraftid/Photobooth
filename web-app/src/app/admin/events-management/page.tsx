@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Plus, Calendar as CalendarIcon, CheckCircle2, Copy, PlayCircle, StopCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Loader2, Plus, Calendar as CalendarIcon, CheckCircle2, Copy, PlayCircle, StopCircle, QrCode, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Event = {
   id: string;
@@ -17,6 +17,7 @@ export default function EventsManagement() {
   const [loading, setLoading] = useState(true);
   const [newEventName, setNewEventName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [showQrModal, setShowQrModal] = useState<string | null>(null);
   const supabase = createClient();
 
   const fetchEvents = async () => {
@@ -180,11 +181,11 @@ export default function EventsManagement() {
                   )}
                 </button>
                 <button
-                  onClick={() => copyLink(event.id)}
-                  title="Copy Client Join Link"
+                  onClick={() => setShowQrModal(event.id)}
+                  title="Show QR Code"
                   className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-colors"
                 >
-                  <Copy className="w-4 h-4" />
+                  <QrCode className="w-4 h-4" />
                 </button>
               </div>
             </motion.div>
@@ -196,6 +197,50 @@ export default function EventsManagement() {
           )}
         </div>
       )}
+
+      {/* QR Code Modal */}
+      <AnimatePresence>
+        {showQrModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-white p-8 rounded-3xl relative text-center max-w-sm w-full"
+            >
+              <button
+                onClick={() => setShowQrModal(null)}
+                className="absolute top-4 right-4 p-2 bg-zinc-100 text-zinc-900 rounded-full hover:bg-zinc-200 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">Scan to Join</h3>
+              <p className="text-zinc-500 text-sm mb-6">Print this QR code and place it in front of the photobooth.</p>
+              
+              <div className="bg-zinc-100 p-4 rounded-2xl flex justify-center mb-6">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + '/event/' + showQrModal + '/join')}`} 
+                  alt="Join QR Code"
+                  className="w-48 h-48"
+                />
+              </div>
+              
+              <button
+                onClick={() => copyLink(showQrModal)}
+                className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+              >
+                <Copy className="w-4 h-4" /> Copy Link URL
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
