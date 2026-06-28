@@ -31,9 +31,10 @@ export default function GalleryView() {
         setError('Photo not found or invalid link.');
       } else {
         setGallery(data);
-        
         // Increment views
-        await supabase.rpc('increment_gallery_views', { p_token: token }).catch(() => {});
+        try {
+          await supabase.rpc('increment_gallery_views', { p_token: token });
+        } catch (e) {}
       }
       setLoading(false);
     };
