@@ -84,8 +84,24 @@ export default function EventsManagement() {
 
   const copyLink = (id: string) => {
     const url = `${window.location.origin}/event/${id}/join`;
-    navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard!');
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    } else {
+      // Fallback for local HTTP connections
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert('Link copied to clipboard!');
+      } catch (err) {
+        prompt('Please copy this link manually:', url);
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   return (

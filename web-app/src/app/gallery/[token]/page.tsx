@@ -70,9 +70,22 @@ export default function GalleryView() {
       } catch (err) {
         console.error('Error sharing', err);
       }
-    } else {
+    } else if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(window.location.href);
       alert('Link copied to clipboard!');
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = window.location.href;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert('Link copied to clipboard!');
+      } catch (err) {
+        prompt('Please copy this link manually:', window.location.href);
+      }
+      document.body.removeChild(textArea);
     }
   };
 
