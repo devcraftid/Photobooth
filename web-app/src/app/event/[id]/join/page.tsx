@@ -26,8 +26,6 @@ export default function JoinEvent() {
 
       if (error || !data) {
         setError('Event not found or invalid QR code.');
-      } else if (data.status !== 'active') {
-        setError('This event is currently not active.');
       } else {
         setEventName(data.name);
       }
