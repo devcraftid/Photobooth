@@ -147,8 +147,12 @@ function App() {
             resetKiosk();
           }, 15000);
 
-        } catch (err) {
+        } catch (err: any) {
           console.error("Processing failed", err);
+          alert("Processing failed: " + (err.message || JSON.stringify(err)));
+          if (activeSession) {
+            await supabase.from('sessions').update({ status: 'failed' }).eq('id', activeSession.id);
+          }
           resetKiosk();
         }
       }
@@ -228,7 +232,6 @@ function App() {
       {capturedImage && appState === 'PROCESSING' && (
         <div className="absolute top-[-9999px] left-[-9999px]">
           <div ref={compositeRef} className="w-[800px] h-[1200px] bg-zinc-900 relative overflow-hidden flex flex-col items-center justify-center border-[20px] border-white pb-32 pt-10 px-10 shadow-2xl">
-             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay" />
              <h2 className="text-4xl font-bold text-white mb-8 z-10 tracking-widest uppercase">My Photobooth</h2>
              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden border-8 border-white/20 z-10 mb-8 shadow-2xl">
                <img src={capturedImage} className="w-full h-full object-cover transform scale-x-[-1]" />
