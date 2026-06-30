@@ -10,6 +10,7 @@ type Session = {
   client_name: string;
   status: string;
   event_id: string;
+  filter_preset?: string;
 };
 
 type AppState = 'IDLE' | 'GET_READY' | 'COUNTDOWN' | 'PROCESSING' | 'FINISHED';
@@ -21,7 +22,17 @@ function App() {
   const [activeSession, setActiveSession] = useState<Session | null>(null);
   const [countdown, setCountdown] = useState(3);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [galleryToken, setGalleryToken] = useState<string>('');
+  
+  const getCssFilter = (preset?: string) => {
+    switch (preset) {
+      case 'grayscale': return 'grayscale(100%)';
+      case 'sepia': return 'sepia(80%)';
+      case 'cool': return 'hue-rotate(180deg)';
+      default: return 'none';
+    }
+  };
   
   const webcamRef = useRef<Webcam>(null);
   const compositeRef = useRef<HTMLDivElement>(null);
@@ -203,6 +214,7 @@ function App() {
                 screenshotFormat="image/jpeg"
                 videoConstraints={{ facingMode: "user", width: 1280, height: 960 }}
                 className="w-full h-full object-cover transform scale-x-[-1]"
+                style={{ filter: getCssFilter(activeSession?.filter_preset) }}
              />
              
              {appState === 'COUNTDOWN' && (
@@ -229,7 +241,12 @@ function App() {
         <div className="absolute top-[-9999px] left-[-9999px]">
           {/* We use htmlToImage just to bake the CSS mirror flip and create a clean PNG */}
           <div ref={compositeRef} className="w-[1280px] h-[960px] bg-zinc-900 relative overflow-hidden">
-            <img src={capturedImage} className="w-full h-full object-cover transform scale-x-[-1]" alt="raw" />
+            <img 
+              src={capturedImage} 
+              className="w-full h-full object-cover transform scale-x-[-1]" 
+              style={{ filter: getCssFilter(activeSession?.filter_preset) }}
+              alt="raw" 
+            />
           </div>
         </div>
       )}

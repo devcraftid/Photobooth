@@ -11,19 +11,29 @@ export default function WaitingRoom() {
   const router = useRouter();
   const [status, setStatus] = useState<string>('waiting');
   const [token, setToken] = useState<string>('');
+  const [filter, setFilter] = useState<string>('normal');
+  const [updatingFilter, setUpdatingFilter] = useState(false);
   const supabase = createClient();
+
+  const FILTERS = [
+    { id: 'normal', name: 'Normal', css: '' },
+    { id: 'grayscale', name: 'B&W', css: 'grayscale(100%)' },
+    { id: 'sepia', name: 'Vintage', css: 'sepia(80%)' },
+    { id: 'cool', name: 'Cool', css: 'hue-rotate(180deg)' },
+  ];
 
   useEffect(() => {
     const fetchSession = async () => {
       const { data } = await supabase
         .from('sessions')
-        .select('status, token')
+        .select('status, token, filter_preset')
         .eq('id', sessionId)
         .single();
       
       if (data) {
         setStatus(data.status);
         if (data.token) setToken(data.token);
+        if (data.filter_preset) setFilter(data.filter_preset);
       }
     };
 
@@ -57,6 +67,39 @@ export default function WaitingRoom() {
     }
   }, [status, token, router]);
 
+  const handleFilterChange = async (newFilter: string) => {
+    setUpdatingFilter(true);
+    setFilter(newFilter);
+    await supabase.from('sessions').update({ filter_preset: newFilter }).eq('id', sessionId);
+    setUpdatingFilter(false);
+  };
+
+  const renderFilterSelection = () => (
+    <div className="mt-8 pt-8 border-t border-zinc-800 text-left">
+      <h3 className="text-white font-medium mb-4 flex items-center gap-2">Pilih Filter Kamera:</h3>
+      <div className="grid grid-cols-4 gap-2">
+        {FILTERS.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => handleFilterChange(f.id)}
+            disabled={updatingFilter}
+            className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${
+              filter === f.id 
+                ? 'border-indigo-500 bg-indigo-500/20 text-indigo-400' 
+                : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700'
+            }`}
+          >
+            <div 
+              className="w-10 h-10 rounded-full bg-gradient-to-tr from-zinc-500 to-zinc-300 shadow-inner" 
+              style={{ filter: f.css }}
+            />
+            <span className="text-[10px] font-bold uppercase tracking-wider">{f.name}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (status) {
       case 'waiting':
@@ -68,6 +111,7 @@ export default function WaitingRoom() {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">You are in the queue</h2>
             <p className="text-zinc-400">Please wait for the admin to call you to the photobooth.</p>
+            {renderFilterSelection()}
           </>
         );
       case 'approved':
@@ -79,6 +123,7 @@ export default function WaitingRoom() {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">It's your turn!</h2>
             <p className="text-zinc-400">Please step into the photobooth now.</p>
+            {renderFilterSelection()}
           </>
         );
       case 'processing':
