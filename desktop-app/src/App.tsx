@@ -290,8 +290,7 @@ function App() {
            
            <div className="flex-1 max-w-lg bg-white p-12 rounded-[3rem] shadow-[0_0_100px_rgba(255,255,255,0.1)] flex flex-col items-center">
              <QRCodeSVG 
-               // Assuming the web app runs on local IP or Vercel
-               value={`https://photobooth-xxx.vercel.app/gallery/${galleryToken}`} 
+               value={`https://photobooth-qsj3w7v8y-devcraftids-projects.vercel.app/gallery/${galleryToken}`} 
                size={350} 
                level="H"
                includeMargin={false}
