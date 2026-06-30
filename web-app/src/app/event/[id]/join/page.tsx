@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Camera, Loader2, Sparkles } from 'lucide-react';
+import { Camera, Loader2, Sparkles, QrCode } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function JoinEvent() {
@@ -11,6 +11,8 @@ export default function JoinEvent() {
   const router = useRouter();
   const [eventName, setEventName] = useState('');
   const [name, setName] = useState('');
+  const [step, setStep] = useState(1); // 1 = Name, 2 = Payment QR
+  const [qrisUrl, setQrisUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -28,6 +30,13 @@ export default function JoinEvent() {
         setError('Event not found or invalid QR code.');
       } else {
         setEventName(data.name);
+        
+        // Fetch QRIS image URL
+        const { data: qrisData } = supabase.storage
+          .from('photobooth-templates')
+          .getPublicUrl('settings/qris.png');
+          
+        setQrisUrl(qrisData.publicUrl);
       }
       setLoading(false);
     };
@@ -35,8 +44,14 @@ export default function JoinEvent() {
     fetchEvent();
   }, [eventId, supabase]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
+    if (name.trim()) {
+      setStep(2);
+    }
+  };
+
+  const handleJoinQueue = async () => {
     setSubmitting(true);
     setError('');
 
@@ -94,35 +109,62 @@ export default function JoinEvent() {
           <p className="text-zinc-400 mt-2 text-sm">Enter your name to join the photobooth queue.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              maxLength={30}
-              className="w-full px-5 py-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-white transition-all text-center text-lg"
-              placeholder="Your Name"
-            />
+        {step === 1 ? (
+          <form onSubmit={handleNextStep} className="space-y-6">
+            <div>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                maxLength={30}
+                className="w-full px-5 py-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-white transition-all text-center text-lg"
+                placeholder="Your Name"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 text-lg shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+            >
+              <QrCode className="w-5 h-5" /> Proceed to Payment
+            </button>
+          </form>
+        ) : (
+          <div className="space-y-6">
+            <div className="bg-white p-4 rounded-2xl">
+              {qrisUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={qrisUrl} alt="QRIS" className="w-full aspect-square object-contain" onError={(e) => (e.currentTarget.style.display = 'none')} />
+              ) : (
+                <div className="w-full aspect-square bg-zinc-100 flex items-center justify-center rounded-xl">
+                  <p className="text-zinc-400 text-sm">QRIS Not Set</p>
+                </div>
+              )}
+            </div>
+            
+            <p className="text-zinc-400 text-center text-sm">
+              Please scan the QRIS above and pay <strong className="text-white">Rp 20.000</strong>.
+              After payment, tap the button below.
+            </p>
+
+            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+
+            <button
+              onClick={handleJoinQueue}
+              disabled={submitting}
+              className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 text-lg shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+            >
+              {submitting ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" /> I Have Paid
+                </>
+              )}
+            </button>
           </div>
-
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 text-lg shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-          >
-            {submitting ? (
-              <Loader2 className="w-6 h-6 animate-spin" />
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5" /> Join Queue
-              </>
-            )}
-          </button>
-        </form>
+        )}
       </motion.div>
     </div>
   );

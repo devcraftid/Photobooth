@@ -1,20 +1,33 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, User, Lock, CreditCard } from 'lucide-react';
+import { Save, User, Lock, CreditCard, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { createClient } from '@/lib/supabase/client';
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
+  const [qrisFile, setQrisFile] = useState<File | null>(null);
+  const supabase = createClient();
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: Implement actual save logic
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      if (qrisFile) {
+        const { error: uploadError } = await supabase.storage
+          .from('photobooth-templates')
+          .upload('settings/qris.png', qrisFile, { upsert: true });
+          
+        if (uploadError) throw uploadError;
+      }
+      
       alert('Settings saved successfully!');
-    }, 1000);
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+    setLoading(false);
   };
 
   return (
@@ -71,25 +84,19 @@ export default function SettingsPage() {
             <hr className="border-zinc-800 my-8" />
             
             <div>
-              <h2 className="text-xl font-bold mb-1">Payment Integration</h2>
-              <p className="text-sm text-zinc-400 mb-6">Configure your payment gateway (e.g. Midtrans, Xendit).</p>
+              <h2 className="text-xl font-bold mb-1">Manual Payment QR (QRIS)</h2>
+              <p className="text-sm text-zinc-400 mb-6">Upload your store or personal QRIS code. Users will scan this when joining the queue.</p>
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Gateway Name</label>
-                <select className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors">
-                  <option value="none">None (Free Mode)</option>
-                  <option value="midtrans">Midtrans</option>
-                  <option value="xendit">Xendit</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Server Key / API Key</label>
+              <div className="border-2 border-dashed border-zinc-800 rounded-2xl p-8 flex flex-col items-center justify-center bg-zinc-950/50">
+                <Upload className="w-8 h-8 text-zinc-500 mb-4" />
+                <p className="text-zinc-400 text-sm mb-4">Select a QR code image (PNG, JPG)</p>
                 <input 
-                  type="password" 
-                  placeholder="Enter your API key here"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors"
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => setQrisFile(e.target.files?.[0] || null)}
+                  className="text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20"
                 />
               </div>
             </div>
