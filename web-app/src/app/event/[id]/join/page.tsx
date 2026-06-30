@@ -13,6 +13,7 @@ export default function JoinEvent() {
   const [name, setName] = useState('');
   const [step, setStep] = useState(1); // 1 = Name, 2 = Payment QR
   const [qrisUrl, setQrisUrl] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +53,11 @@ export default function JoinEvent() {
   };
 
   const handleJoinQueue = async () => {
+    if (!proofFile) {
+      setError('Harap unggah screenshot bukti transfer terlebih dahulu.');
+      return;
+    }
+
     setSubmitting(true);
     setError('');
 
@@ -69,6 +75,11 @@ export default function JoinEvent() {
       setError(error.message);
       setSubmitting(false);
     } else if (data) {
+      // Upload the proof image
+      await supabase.storage
+        .from('photobooth-templates')
+        .upload(`proofs/${data.id}.png`, proofFile, { upsert: true });
+
       // Redirect to waiting room
       router.push(`/event/${eventId}/waiting/${data.id}`);
     }
@@ -148,7 +159,20 @@ export default function JoinEvent() {
               After payment, tap the button below.
             </p>
 
-            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+            <div className="bg-zinc-900/50 p-4 border border-zinc-800 rounded-2xl">
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Upload Bukti Transfer</label>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={(e) => {
+                  setProofFile(e.target.files?.[0] || null);
+                  setError('');
+                }}
+                className="w-full text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20"
+              />
+            </div>
+
+            {error && <p className="text-red-400 text-sm text-center bg-red-500/10 py-2 rounded-xl border border-red-500/20">{error}</p>}
 
             <button
               onClick={handleJoinQueue}

@@ -21,7 +21,6 @@ function App() {
   const [activeSession, setActiveSession] = useState<Session | null>(null);
   const [countdown, setCountdown] = useState(3);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [galleryToken, setGalleryToken] = useState<string>('');
   
   const webcamRef = useRef<Webcam>(null);
@@ -63,21 +62,6 @@ function App() {
   const startSession = async (session: Session) => {
     setActiveSession(session);
     setAppState('GET_READY');
-    
-    // Fetch template for this event
-    const { data: templateData } = await supabase
-      .from('templates')
-      .select('background_url')
-      .eq('event_id', session.event_id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (templateData) {
-      setActiveTemplate(templateData.background_url);
-    } else {
-      setActiveTemplate(null);
-    }
     
     // Update status to active
     await supabase.from('sessions').update({ status: 'active' }).eq('id', session.id);
@@ -177,7 +161,6 @@ function App() {
     setCapturedImage(null);
     setGalleryToken('');
     setCountdown(3);
-    setActiveTemplate(null);
   };
 
   return (
@@ -244,28 +227,9 @@ function App() {
       {/* Hidden Composite Div for html-to-image */}
       {capturedImage && appState === 'PROCESSING' && (
         <div className="absolute top-[-9999px] left-[-9999px]">
-          <div ref={compositeRef} className="w-[800px] h-[1200px] bg-zinc-900 relative overflow-hidden shadow-2xl">
-            {activeTemplate ? (
-              <>
-                <div className="absolute inset-0 z-0">
-                  <img src={capturedImage} className="w-full h-full object-cover transform scale-x-[-1]" />
-                </div>
-                {/* eslint-disable-next-line jsx-a11y/alt-text */}
-                <img src={activeTemplate} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none" />
-              </>
-            ) : (
-              // Hardcoded fallback template
-              <div className="w-full h-full relative flex flex-col items-center justify-center border-[20px] border-white pb-32 pt-10 px-10 bg-zinc-900">
-                 <h2 className="text-4xl font-bold text-white mb-8 z-10 tracking-widest uppercase">My Photobooth</h2>
-                 <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden border-8 border-white/20 z-10 mb-8 shadow-2xl">
-                   <img src={capturedImage} className="w-full h-full object-cover transform scale-x-[-1]" />
-                 </div>
-                 <div className="absolute bottom-12 text-center text-white z-10 w-full">
-                    <p className="text-2xl font-serif italic mb-2">{activeSession?.client_name}</p>
-                    <p className="text-sm opacity-50 uppercase tracking-widest">{new Date().toLocaleDateString()}</p>
-                 </div>
-              </div>
-            )}
+          {/* We use htmlToImage just to bake the CSS mirror flip and create a clean PNG */}
+          <div ref={compositeRef} className="w-[1280px] h-[960px] bg-zinc-900 relative overflow-hidden">
+            <img src={capturedImage} className="w-full h-full object-cover transform scale-x-[-1]" alt="raw" />
           </div>
         </div>
       )}

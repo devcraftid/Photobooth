@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, UserCheck, Clock, CheckCircle2, DollarSign } from 'lucide-react';
+import { Loader2, UserCheck, Clock, CheckCircle2, DollarSign, Image as ImageIcon } from 'lucide-react';
 
 type Session = {
   id: string;
@@ -101,12 +101,24 @@ export default function LiveQueue() {
                     <p className="text-xs text-zinc-600 mt-1">{new Date(session.created_at).toLocaleTimeString()}</p>
                   </div>
                   
-                  <button 
-                    onClick={() => handleApprove(session.id)}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-lg shadow-emerald-500/20"
-                  >
-                    <DollarSign className="w-4 h-4" /> Paid & Approve
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        const url = supabase.storage.from('photobooth-templates').getPublicUrl(`proofs/${session.id}.png`).data.publicUrl;
+                        window.open(url, '_blank');
+                      }}
+                      className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2"
+                      title="Lihat Bukti Pembayaran"
+                    >
+                      <ImageIcon className="w-4 h-4" /> Bukti
+                    </button>
+                    <button 
+                      onClick={() => handleApprove(session.id)}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+                    >
+                      <DollarSign className="w-4 h-4" /> Paid & Approve
+                    </button>
+                  </div>
                 </div>
               ))
             )}
