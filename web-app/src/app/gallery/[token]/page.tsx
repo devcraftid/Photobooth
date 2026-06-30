@@ -159,8 +159,8 @@ export default function GalleryView() {
            {/* Composite wrapper for html-to-image */}
            <div 
              ref={compositeRef} 
-             className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-zinc-950"
-             style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}
+             className="relative aspect-[2/3] w-full rounded-2xl overflow-hidden bg-zinc-950 mx-auto"
+             style={{ width: '100%', maxWidth: '400px' }}
            >
              {/* Raw Image */}
              {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -207,7 +207,7 @@ export default function GalleryView() {
                 <button
                   key={template.id}
                   onClick={() => setSelectedTemplate(template)}
-                  className={`flex-shrink-0 w-24 aspect-[4/3] rounded-2xl border-2 relative overflow-hidden transition-all snap-center ${
+                  className={`flex-shrink-0 w-24 aspect-[2/3] rounded-2xl border-2 relative overflow-hidden transition-all snap-center ${
                     selectedTemplate?.id === template.id 
                       ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)] scale-105' 
                       : 'border-zinc-800 opacity-70 hover:opacity-100 hover:border-zinc-600'

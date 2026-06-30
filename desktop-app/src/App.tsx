@@ -240,7 +240,7 @@ function App() {
       {capturedImage && appState === 'PROCESSING' && (
         <div className="absolute top-[-9999px] left-[-9999px]">
           {/* We use htmlToImage just to bake the CSS mirror flip and create a clean PNG */}
-          <div ref={compositeRef} className="w-[1280px] h-[960px] bg-zinc-900 relative overflow-hidden">
+          <div ref={compositeRef} className="w-[800px] h-[1200px] bg-zinc-900 relative overflow-hidden">
             <img 
               src={capturedImage} 
               className="w-full h-full object-cover transform scale-x-[-1]" 
