@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './lib/supabase';
 import Webcam from 'react-webcam';
-import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 import { QRCodeSVG } from 'qrcode.react';
 import { Camera, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 
@@ -36,7 +36,7 @@ function App() {
         .in('status', ['approved', 'active'])
         .order('created_at', { ascending: true })
         .limit(1)
-        .single();
+        .maybeSingle();
       
       if (data && appState === 'IDLE') {
         startSession(data);
@@ -101,13 +101,9 @@ function App() {
     setTimeout(async () => {
       if (compositeRef.current && activeSession) {
         try {
-          const canvas = await html2canvas(compositeRef.current, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: null
+          const finalBase64 = await htmlToImage.toPng(compositeRef.current, {
+            pixelRatio: 2
           });
-          
-          const finalBase64 = canvas.toDataURL('image/png');
           const blob = await (await fetch(finalBase64)).blob();
 
           // 3.3 Upload to Supabase Storage
@@ -182,7 +178,7 @@ function App() {
             <Camera className="w-16 h-16 text-zinc-400" />
           </div>
           <h1 className="text-6xl font-bold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-500">
-            Photobooth Kiosk
+            Photobooth Waringin
           </h1>
           <p className="text-2xl text-zinc-400">Scan QR Code from Web App to start.</p>
         </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Upload, Trash2, Image as ImageIcon, Edit2, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 type Template = {
@@ -21,6 +21,9 @@ export default function TemplatesManagement() {
   const [selectedEvent, setSelectedEvent] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [editingTemplateName, setEditingTemplateName] = useState('');
 
   const supabase = createClient();
 
@@ -90,6 +93,22 @@ export default function TemplatesManagement() {
     const { error } = await supabase.from('templates').delete().eq('id', id);
     if (!error) {
       await fetchData();
+    }
+  };
+
+  const handleUpdate = async (id: string) => {
+    if (!editingTemplateName.trim()) return;
+    
+    const { error } = await supabase
+      .from('templates')
+      .update({ name: editingTemplateName })
+      .eq('id', id);
+      
+    if (!error) {
+      setEditingTemplateId(null);
+      await fetchData();
+    } else {
+      alert(error.message);
     }
   };
 
@@ -169,15 +188,38 @@ export default function TemplatesManagement() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={template.background_url} alt={template.name} className="w-full h-full object-contain" />
                   </div>
-                  <h3 className="font-bold text-lg">{template.name}</h3>
+                  
+                  {editingTemplateId === template.id ? (
+                    <div className="flex items-center gap-2 mb-1">
+                      <input
+                        type="text"
+                        value={editingTemplateName}
+                        onChange={(e) => setEditingTemplateName(e.target.value)}
+                        className="px-2 py-1 bg-zinc-950 border border-zinc-700 rounded text-sm text-white w-full outline-none"
+                        autoFocus
+                      />
+                      <button onClick={() => handleUpdate(template.id)} className="text-emerald-500 hover:text-emerald-400 p-1"><Check className="w-4 h-4" /></button>
+                      <button onClick={() => setEditingTemplateId(null)} className="text-zinc-500 hover:text-zinc-400 p-1"><X className="w-4 h-4" /></button>
+                    </div>
+                  ) : (
+                    <h3 className="font-bold text-lg">{template.name}</h3>
+                  )}
                   <p className="text-sm text-zinc-500 truncate">Event ID: {template.event_id}</p>
                   
-                  <button 
-                    onClick={() => handleDelete(template.id)}
-                    className="absolute top-6 right-6 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => { setEditingTemplateId(template.id); setEditingTemplateName(template.name); }}
+                      className="bg-zinc-800 hover:bg-zinc-700 text-white p-2 rounded-lg"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(template.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </motion.div>
               ))}
               

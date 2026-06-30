@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Plus, Calendar as CalendarIcon, CheckCircle2, Copy, PlayCircle, StopCircle, QrCode, X } from 'lucide-react';
+import { Loader2, Plus, Calendar as CalendarIcon, CheckCircle2, Copy, PlayCircle, StopCircle, QrCode, X, Trash2, Edit2, Check, X as XIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Event = {
@@ -18,6 +18,8 @@ export default function EventsManagement() {
   const [newEventName, setNewEventName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [showQrModal, setShowQrModal] = useState<string | null>(null);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [editingEventName, setEditingEventName] = useState('');
   const supabase = createClient();
 
   const fetchEvents = async () => {
@@ -80,6 +82,33 @@ export default function EventsManagement() {
 
     if (!error) {
       await fetchEvents();
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this event? All associated photos and templates might be affected.')) return;
+    
+    const { error } = await supabase.from('events').delete().eq('id', id);
+    if (!error) {
+      await fetchEvents();
+    } else {
+      alert(error.message);
+    }
+  };
+
+  const handleUpdate = async (id: string) => {
+    if (!editingEventName.trim()) return;
+    
+    const { error } = await supabase
+      .from('events')
+      .update({ name: editingEventName })
+      .eq('id', id);
+      
+    if (!error) {
+      setEditingEventId(null);
+      await fetchEvents();
+    } else {
+      alert(error.message);
     }
   };
 
@@ -154,18 +183,50 @@ export default function EventsManagement() {
                     <CalendarIcon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-white truncate max-w-[150px]">{event.name}</h3>
+                    {editingEventId === event.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editingEventName}
+                          onChange={(e) => setEditingEventName(e.target.value)}
+                          className="px-2 py-1 bg-zinc-950 border border-zinc-700 rounded text-sm text-white w-32 outline-none"
+                          autoFocus
+                        />
+                        <button onClick={() => handleUpdate(event.id)} className="text-emerald-500 hover:text-emerald-400"><Check className="w-4 h-4" /></button>
+                        <button onClick={() => setEditingEventId(null)} className="text-zinc-500 hover:text-zinc-400"><XIcon className="w-4 h-4" /></button>
+                      </div>
+                    ) : (
+                      <h3 className="font-bold text-lg text-white truncate max-w-[150px]">{event.name}</h3>
+                    )}
                     <span className="text-xs text-zinc-500">{new Date(event.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
-                {event.status === 'active' && (
-                  <span className="flex items-center gap-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full">
-                    <CheckCircle2 className="w-3 h-3" /> Active
-                  </span>
-                )}
+                <div className="flex flex-col items-end gap-2">
+                  {event.status === 'active' && (
+                    <span className="flex items-center gap-1 text-xs font-medium bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full">
+                      <CheckCircle2 className="w-3 h-3" /> Active
+                    </span>
+                  )}
+                  <div className="flex gap-2 mt-2">
+                    <button 
+                      onClick={() => { setEditingEventId(event.id); setEditingEventName(event.name); }}
+                      className="p-1.5 text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-800 rounded"
+                      title="Edit Event"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(event.id)}
+                      className="p-1.5 text-zinc-400 hover:text-red-500 bg-zinc-800/50 hover:bg-zinc-800 rounded"
+                      title="Delete Event"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               </div>
               
-              <div className="flex gap-2 mt-6">
+              <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => toggleEventStatus(event.id, event.status)}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-medium transition-colors text-sm ${

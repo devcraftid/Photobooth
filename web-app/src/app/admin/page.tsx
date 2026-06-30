@@ -83,49 +83,6 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          className="lg:col-span-2 bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl h-96 flex flex-col"
-        >
-           <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-white">Recent Activity</h3>
-              <Activity className="text-zinc-500 w-5 h-5" />
-           </div>
-           <div className="flex-1 flex items-center justify-center border-2 border-dashed border-zinc-800 rounded-2xl">
-              <p className="text-zinc-500">No recent activity to show.</p>
-           </div>
-        </motion.div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl h-96 flex flex-col"
-        >
-           <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-white">Booth Status</h3>
-           </div>
-           <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-2xl border border-zinc-800/50">
-                 <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="font-medium">Booth 1 (Jakarta)</span>
-                 </div>
-                 <span className="text-xs bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-lg">Online</span>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-2xl border border-zinc-800/50">
-                 <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-zinc-600" />
-                    <span className="font-medium text-zinc-400">Booth 2 (Bali)</span>
-                 </div>
-                 <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-1 rounded-lg">Offline</span>
-              </div>
-           </div>
-        </motion.div>
-      </div>
     </div>
   );
 }
